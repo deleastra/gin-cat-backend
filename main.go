@@ -19,8 +19,10 @@ func main() {
 	}
 
 	var cat models.Cats
+	var user models.Users
 	// Migrate the schema
 	db.AutoMigrate(cat)
+	db.AutoMigrate(user)
 
 	router := gin.New()
 	api := router.Group("/cat")

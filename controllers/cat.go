@@ -8,30 +8,28 @@ import (
 )
 
 // GET
-// func (db *DBController) GetCats(c *gin.Context) {
-// 	_type := c.Query("type")
-// 	_where := map[string]interface{}{}
+func (db *DBController) GetCats(c *gin.Context) {
+	_type := c.Query("type")
+	_where := map[string]interface{}{}
 
-// 	if _type != "" {
-// 		_where["type"] = _type
-// 	}
+	if _type != "" {
+		_where["type"] = _type
+	}
 
-// 	var cats []models.Cats
-// 	db.Database.Where(_where).Find(&cats)
+	var cats []models.Cats
+	db.Database.Where(_where).Find(&cats)
 
-// 	c.JSON(http.StatusOK, gin.H{"results": &cats})
-// }
+	c.JSON(http.StatusOK, gin.H{"results": &cats})
+}
 
 // GET BY ID
-// func (db *DBController) GetCollectionById(c *gin.Context) {
-// 	id := c.Param("id")
-// 	var collections models.Collections
+func (db *DBController) GetCatByID(c *gin.Context) {
+	id := c.Param("id")
+	var cats models.Cats
 
-// 	db.Database.First(&collections, id)
-// 	db.Database.Model(&collections).Association("Groups").Find(&collections.Groups)
-
-// 	c.JSON(http.StatusOK, gin.H{"results": &collections})
-// }
+	db.Database.First(&cats, id)
+	c.JSON(http.StatusOK, gin.H{"results": &cats})
+}
 
 // POST
 func (db *DBController) CreateCat(c *gin.Context) {
@@ -48,25 +46,25 @@ func (db *DBController) CreateCat(c *gin.Context) {
 }
 
 // PATCH
-// func (db *DBController) UpdateCollection(c *gin.Context) {
+func (db *DBController) UpdateCat(c *gin.Context) {
 
-// 	var collection models.Collections
-// 	err := c.ShouldBind(&collection)
+	var cat models.Cats
+	err := c.ShouldBind(&cat)
 
-// 	result := db.Database.Updates(collection)
+	result := db.Database.Updates(cat)
 
-// 	if result.Error != nil || err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"meassage": "Bad request."})
-// 	} else {
-// 		c.JSON(http.StatusOK, gin.H{"results": &collection})
-// 	}
-// }
+	if result.Error != nil || err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"meassage": "Bad request."})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"results": &cat})
+	}
+}
 
-// // DELETE
-// func (db *DBController) DeleteCollection(c *gin.Context) {
-// 	id := c.Param("id")
-// 	var collections models.Collections
-// 	db.Database.Delete(&collections, id)
+// DELETE
+func (db *DBController) DeleteCat(c *gin.Context) {
+	id := c.Param("id")
+	var cats models.Cats
+	db.Database.Delete(&cats, id)
 
-// 	c.JSON(http.StatusOK, gin.H{"message": http.StatusOK})
-// }
+	c.JSON(http.StatusOK, gin.H{"message": http.StatusOK})
+}
