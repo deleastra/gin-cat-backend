@@ -28,12 +28,11 @@ func main() {
 	api := router.Group("/cat")
 	routers.SetCatRoutes(api, db)
 
-	// router := gin.New()
-	// router.GET("/", func(c *gin.Context) {
-	// 	c.JSON(200, gin.H{
-	// 		"message": "HELLO GOLANG RESTFUL API.",
-	// 	})
-	// })
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "HELLO GOLANG RESTFUL API.",
+		})
+	})
 	fmt.Println("Server Running on Port: ", 5000)
 	http.ListenAndServe(":5000", router)
 }
