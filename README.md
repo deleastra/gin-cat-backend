@@ -1,3 +1,3 @@
 # gin-cat-backend
 
-I'm lazy.
+for self-learning
