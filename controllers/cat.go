@@ -1,70 +1,54 @@
 package controllers
 
 import (
-	"net/http"
+	"context"
 
 	"example.com/golang-restfulapi/models"
-	"github.com/gin-gonic/gin"
+
+	"gorm.io/gorm"
 )
 
-// GET
-func (db *DBController) GetCats(c *gin.Context) {
-	_type := c.Query("type")
-	_where := map[string]interface{}{}
+type CatsController struct {
+	DB *gorm.DB
+}
 
-	if _type != "" {
-		_where["type"] = _type
-	}
-
+func (c *CatsController) GetCats(ctx context.Context) ([]models.Cats, error) {
 	var cats []models.Cats
-	db.Database.Where(_where).Find(&cats)
-
-	c.JSON(http.StatusOK, gin.H{"results": &cats})
-}
-
-// GET BY ID
-func (db *DBController) GetCatByID(c *gin.Context) {
-	id := c.Param("id")
-	var cats models.Cats
-
-	db.Database.First(&cats, id)
-	c.JSON(http.StatusOK, gin.H{"results": &cats})
-}
-
-// POST
-func (db *DBController) CreateCat(c *gin.Context) {
-	var cats models.Cats
-	err := c.ShouldBind(&cats)
-
-	result := db.Database.Create(&cats)
-
-	if result.Error != nil || err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"meassage": "Bad request."})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"results": &cats})
+	if err := c.DB.Find(&cats).Error; err != nil {
+		return nil, err
 	}
+	return cats, nil
 }
 
-// PATCH
-func (db *DBController) UpdateCat(c *gin.Context) {
-
+func (c *CatsController) GetCatByID(ctx context.Context, id uint) (*models.Cats, error) {
 	var cat models.Cats
-	err := c.ShouldBind(&cat)
-
-	result := db.Database.Updates(cat)
-
-	if result.Error != nil || err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"meassage": "Bad request."})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"results": &cat})
+	if err := c.DB.First(&cat, id).Error; err != nil {
+		return nil, err
 	}
+	return &cat, nil
 }
 
-// DELETE
-func (db *DBController) DeleteCat(c *gin.Context) {
-	id := c.Param("id")
-	var cats models.Cats
-	db.Database.Delete(&cats, id)
+func (c *CatsController) CreateCat(ctx context.Context, cat *models.Cats) error {
+	if err := c.DB.Create(cat).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
-	c.JSON(http.StatusOK, gin.H{"message": http.StatusOK})
+func (c *CatsController) UpdateCat(ctx context.Context, cat *models.Cats) error {
+	if err := c.DB.Save(cat).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CatsController) DeleteCat(ctx context.Context, id uint) error {
+	cat, err := c.GetCatByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := c.DB.Delete(cat).Error; err != nil {
+		return err
+	}
+	return nil
 }
