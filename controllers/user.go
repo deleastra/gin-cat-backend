@@ -3,7 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"example.com/golang-restfulapi/models"
+	"cat-backend/models"
+
 	"github.com/gin-gonic/gin"
 )
 

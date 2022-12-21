@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"example.com/golang-restfulapi/models"
+	"cat-backend/models"
 )
 
 func TestCatsMarshalJSON(t *testing.T) {

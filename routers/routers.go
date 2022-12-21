@@ -1,17 +1,21 @@
 package routers
 
 import (
-	"example.com/golang-restfulapi/controllers"
+	"cat-backend/controllers"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func SetCatRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	ctrls := controllers.DBController{Database: db}
+// SetCatRoutes sets up the routes for the cat controller.
+func SetCatRoutes(db *gorm.DB, r *gin.Engine) *gin.Engine {
+	catCtrl := controllers.NewCatsController(db)
 
-	router.GET("cat", ctrls.GetCats)  // GET
-	router.GET("cat/:id", ctrls.GetCatByID)  // GET BY ID
-	router.POST("cat", ctrls.CreateCat) // POST
-	router.PATCH("cat", ctrls.UpdateCat)  // PATCH
-	router.DELETE("cat/:id", ctrls.DeleteCat)  // DELETE
+	r.GET("/cats", catCtrl.GetCats)
+	r.POST("/cats", catCtrl.CreateCat)
+	r.GET("/cats/:id", catCtrl.GetCatByID)
+	r.PUT("/cats/:id", catCtrl.UpdateCat)
+	r.DELETE("/cats/:id", catCtrl.DeleteCat)
+
+	return r
 }

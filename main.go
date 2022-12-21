@@ -1,38 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
-	"example.com/golang-restfulapi/models"
+	"cat-backend/routers"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	routers "example.com/golang-restfulapi/routers"
 )
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("cat.db"), &gorm.Config{})
+	// Set up database connection.
+	db, err := gorm.Open(sqlite.Open("cat.db"))
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatal(err)
 	}
+	// defer db.Close()
+	db.AutoMigrate()
+	// Set up router.
+	router := gin.Default()
+	r := routers.SetCatRoutes(db, router)
 
-	var cat models.Cats
-	var user models.Users
-	// Migrate the schema
-	db.AutoMigrate(cat)
-	db.AutoMigrate(user)
-
-	router := gin.New()
-	api := router.Group("/cat")
-	routers.SetCatRoutes(api, db)
-
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "HELLO GOLANG RESTFUL API.",
-		})
-	})
-	fmt.Println("Server Running on Port: ", 5000)
-	http.ListenAndServe(":5000", router)
+	// Start server.
+	// Enable debugging.
+	log.Println("server listening on localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
