@@ -62,6 +62,11 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	}
 	defer src.Close()
 
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	// Generate a hash value for the image file.
 	h := sha256.New()
 	if _, err := io.Copy(h, src); err != nil {
