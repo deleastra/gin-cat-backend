@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"cat-backend/models"
 	"cat-backend/routers"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 	// defer db.Close()
-	db.AutoMigrate()
+	db.AutoMigrate(&models.Cats{}, &models.Users{})
 	// Set up router.
 	router := gin.Default()
 	r := routers.SetCatRoutes(db, router)
