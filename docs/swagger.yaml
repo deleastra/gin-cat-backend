@@ -1,4 +1,173 @@
+basePath: /api/v1
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Cats:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        description: ID is the primary key and auto-incrementing field for the cats
+          table in the database.
+        type: integer
+      image:
+        description: Image is the file path or URL of an image for the cat.
+        type: string
+      name:
+        description: Name is the name of the cat.
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
 info:
-  contact: {}
-paths: {}
+  contact:
+    email: support@example.com
+    name: API Support
+  description: A simple API for managing cats.
+  title: Cat API
+  version: "1.0"
+paths:
+  /cats:
+    get:
+      description: Retrieves a list of all cats stored in the database.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Retrieves a list of all cats
+      tags:
+      - cats
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new cat and stores it in the database.
+      parameters:
+      - description: Name of the cat
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Image of the cat
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Creates a new cat
+      tags:
+      - cats
+  /cats/{id}:
+    delete:
+      description: Deletes a cat from the database by ID.
+      parameters:
+      - description: ID of the cat
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Deletes a cat by ID
+      tags:
+      - cats
+    get:
+      description: Retrieves a single cat by ID from the database.
+      parameters:
+      - description: ID of the cat
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Retrieves a single cat by ID
+      tags:
+      - cats
+    put:
+      consumes:
+      - application/json
+      description: Updates a cat by ID and stores the changes in the database.
+      parameters:
+      - description: ID of the cat
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated cat information
+        in: body
+        name: cat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Cats'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Updates a cat by ID
+      tags:
+      - cats
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  BasicAuth:
+    type: basic
 swagger: "2.0"

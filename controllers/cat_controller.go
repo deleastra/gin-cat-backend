@@ -26,7 +26,13 @@ func NewCatsController(db *gorm.DB) *CatsController {
 	return &CatsController{DB: db}
 }
 
-// GetCats handles a GET request to retrieve a list of all cats.
+// @Summary Retrieves a list of all cats
+// @Description Retrieves a list of all cats stored in the database.
+// @Tags cats
+// @Produce json
+// @Success 200 {array} models.Cats
+// @Failure 500 {object} models.ErrorResponse
+// @Router /cats [get]
 func (ctrl CatsController) GetCats(c *gin.Context) {
 	var cats []models.Cats
 	if err := ctrl.DB.Find(&cats).Error; err != nil {
@@ -36,7 +42,14 @@ func (ctrl CatsController) GetCats(c *gin.Context) {
 	c.JSON(http.StatusOK, cats)
 }
 
-// GetCatByID handles a GET request to retrieve a single cat by ID.
+// @Summary Retrieves a single cat by ID
+// @Description Retrieves a single cat by ID from the database.
+// @Tags cats
+// @Produce  json
+// @Param id path int true "ID of the cat"
+// @Success 200 {object} models.Cats
+// @Failure 404 {object} models.ErrorResponse
+// @Router /cats/{id} [get]
 func (ctrl CatsController) GetCatByID(c *gin.Context) {
 	var cat models.Cats
 	if err := ctrl.DB.Where("id = ?", c.Param("id")).First(&cat).Error; err != nil {
@@ -139,34 +152,63 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"cat": cat})
 }
 
-// UpdateCat handles a PUT request to update an existing cat.
-func (ctrl CatsController) UpdateCat(c *gin.Context) {
+// @Summary Updates a cat by ID
+// @Description Updates a cat by ID and stores the changes in the database.
+// @Tags cats
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the cat"
+// @Param cat body models.Cats true "Updated cat information"
+// @Success 200 {object} models.Cats
+// @Failure 400 {object} models.ErrorResponse
+// @Router /cats/{id} [put]
+func (c *CatsController) UpdateCat(ctx *gin.Context) {
+	// Parse the request and bind the cat struct.
 	var cat models.Cats
-	if err := ctrl.DB.Where("id = ?", c.Param("id")).First(&cat).Error; err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+	if err := ctx.Bind(&cat); err != nil {
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
-	if err := c.BindJSON(&cat); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+
+	// Update the cat in the database.
+	if err := c.DB.Model(&cat).Where("id = ?", ctx.Param("id")).Updates(&cat).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusInternalServerError,
+		})
 		return
 	}
-	if err := ctrl.DB.Save(&cat).Error; err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	c.JSON(http.StatusOK, cat)
+
+	ctx.JSON(http.StatusOK, cat)
 }
 
-// DeleteCat handles a DELETE request to delete an existing cat.
-func (ctrl CatsController) DeleteCat(c *gin.Context) {
+// @Summary Deletes a cat by ID
+// @Description Deletes a cat from the database by ID.
+// @Tags cats
+// @Produce  json
+// @Param id path string true "ID of the cat"
+// @Success 204
+// @Failure 404 {object} models.ErrorResponse
+// @Router /cats/{id} [delete]
+func (c *CatsController) DeleteCat(ctx *gin.Context) {
 	var cat models.Cats
-	if err := ctrl.DB.Where("id = ?", c.Param("id")).First(&cat).Error; err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+	// Delete the cat from the database.
+	if err := c.DB.Where("id = ?", ctx.Param("id")).Delete(&models.Cats{}).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusNotFound,
+		})
 		return
 	}
-	if err := ctrl.DB.Delete(&cat).Error; err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+	if err := c.DB.Delete(&cat).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusInternalServerError,
+		})
 		return
 	}
-	c.Status(http.StatusNoContent)
+	ctx.Status(http.StatusNoContent)
 }

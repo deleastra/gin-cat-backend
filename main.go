@@ -1,44 +1,53 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
 	"cat-backend/models"
 	"cat-backend/routers"
+	"log"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 
 	docs "cat-backend/docs"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
+// @title Cat API
+// @version 1.0
+// @description A simple API for managing cats.
+
+// @contact.name API Support
+// @contact.email support@example.com
+
+// @BasePath /api/v1
+
+// @securityDefinitions.basic BasicAuth
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
 func main() {
-	// Set up database connection.
+	// Connect to the database.
 	db, err := gorm.Open(sqlite.Open("cat.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	// defer db.Close()
 	db.AutoMigrate(&models.Cats{}, &models.Users{})
-	// Set up router.
-	router := gin.Default()
-	r := routers.SetCatRoutes(db, router)
+
+	// Set up the router.
+	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
-	v1 := r.Group("/api/")
-	{
-		eg := v1.Group("/cat")
-		{
-			eg.GET("/helloworld", Helloworld)
-		}
-	}
+	// Set up the routes for the cat controller.
+	routers.SetCatRoutes(db, r)
+
+	// Set up Swagger documentation.
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// Start server.
-	// Enable debugging.
-	log.Println("server listening on localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	// Run the server.
+	r.Run()
 }
