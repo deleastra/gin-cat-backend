@@ -1,13 +1,17 @@
 package controllers
 
 import (
+	"crypto/rand"
+	"crypto/sha512"
+	"image"
+	"image/color"
 	"net/http"
 	"path/filepath"
 
 	"cat-backend/models"
-	"crypto/sha256"
 	"encoding/hex"
-	"io"
+
+	"github.com/disintegration/imaging"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -62,24 +66,38 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	}
 	defer src.Close()
 
+	// Decode the image into memory.
+	srcImg, err := imaging.Decode(src)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Generate a hash value for the image file.
-	h := sha256.New()
-	if _, err := io.Copy(h, src); err != nil {
+	// Resize the image to a specific width and height.
+	dstImg := imaging.Resize(srcImg, 800, 600, imaging.Lanczos)
+
+	// Create a new image file in memory to store the resized image.
+	dst := imaging.New(800, 600, color.NRGBA{0, 0, 0, 0})
+	dst = imaging.Paste(dst, dstImg, image.Pt(0, 0))
+
+	// Generate a random slice of bytes.
+	randomBytes := make([]byte, 32)
+	_, err = rand.Read(randomBytes)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
-	hash := hex.EncodeToString(h.Sum(nil))
+
+	// Generate the SHA-512 hash of the random bytes.
+	hash := sha512.Sum512(randomBytes)
+
+	// Encode the hash as a hexadecimal string.
+	hashString := hex.EncodeToString(hash[:])
 
 	// Rename the image file to the hash value.
-	cat.Image = hash + filepath.Ext(file.Filename)
+	cat.Image = hashString + filepath.Ext(file.Filename)
 
 	// Upload the image file to the server.
-	if err := ctx.SaveUploadedFile(file, "images/"+cat.Image); err != nil {
+	if imaging.Save(dst, "images/"+cat.Image); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

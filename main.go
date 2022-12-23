@@ -8,6 +8,8 @@ import (
 	"cat-backend/routers"
 
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -23,6 +25,7 @@ func main() {
 	// Set up router.
 	router := gin.Default()
 	r := routers.SetCatRoutes(db, router)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// Start server.
 	// Enable debugging.
