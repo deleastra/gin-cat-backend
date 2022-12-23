@@ -7,6 +7,8 @@ import (
 	"cat-backend/models"
 	"cat-backend/routers"
 
+	docs "cat-backend/docs"
+
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -25,6 +27,14 @@ func main() {
 	// Set up router.
 	router := gin.Default()
 	r := routers.SetCatRoutes(db, router)
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	v1 := r.Group("/api/")
+	{
+		eg := v1.Group("/cat")
+		{
+			eg.GET("/helloworld", Helloworld)
+		}
+	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// Start server.

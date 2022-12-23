@@ -46,6 +46,16 @@ func (ctrl CatsController) GetCatByID(c *gin.Context) {
 	c.JSON(http.StatusOK, cat)
 }
 
+// @Summary Creates a new cat
+// @Description Creates a new cat and stores it in the database.
+// @Tags cats
+// @Accept  multipart/form-data
+// @Produce  json
+// @Param name formData string true "Name of the cat"
+// @Param image formData file true "Image of the cat"
+// @Success 200 {object} models.Cats
+// @Failure 400 {object} models.ErrorResponse
+// @Router /cats [post]
 func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Parse the request and bind the cat struct.
 	var cat models.Cats
@@ -54,14 +64,20 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Read the image file from the request.
 	file, err := ctx.FormFile("image")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
 
 	// Open the image file.
 	src, err := file.Open()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
 	defer src.Close()
@@ -69,7 +85,10 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Decode the image into memory.
 	srcImg, err := imaging.Decode(src)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
 
@@ -84,7 +103,10 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	randomBytes := make([]byte, 32)
 	_, err = rand.Read(randomBytes)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 	}
 
 	// Generate the SHA-512 hash of the random bytes.
@@ -98,13 +120,19 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 
 	// Upload the image file to the server.
 	if imaging.Save(dst, "images/"+cat.Image); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
 
 	// Save the cat to the database.
 	if err := c.DB.Create(&cat).Error; err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
 		return
 	}
 
