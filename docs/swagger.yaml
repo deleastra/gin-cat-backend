@@ -27,11 +27,40 @@ definitions:
       updatedAt:
         type: string
     type: object
-  models.ErrorResponse:
+  models.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.Response:
     properties:
       code:
         type: integer
+      data: {}
       message:
+        type: string
+    type: object
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      display_name:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      updatedAt:
+        type: string
+      username:
         type: string
     type: object
 info:
@@ -57,7 +86,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.Response'
       summary: Retrieves a list of all cats
       tags:
       - cats
@@ -86,7 +115,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.Response'
       summary: Creates a new cat
       tags:
       - cats
@@ -107,7 +136,7 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.Response'
       summary: Deletes a cat by ID
       tags:
       - cats
@@ -129,7 +158,7 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.Response'
       summary: Retrieves a single cat by ID
       tags:
       - cats
@@ -159,10 +188,156 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.Response'
       summary: Updates a cat by ID
       tags:
       - cats
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Logs a user in and returns a JWT token
+      parameters:
+      - description: Credentials for logging in
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Logs a user in
+      tags:
+      - login
+  /logout:
+    post:
+      description: Logs a user out by invalidating their JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Logs a user out
+      tags:
+      - login
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user by parsing a User struct from the request body
+        and saving it to the database.
+      parameters:
+      - description: New user details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Creates a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Deletes a user with the given ID from the database
+      parameters:
+      - description: ID of the user to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Deletes a user by ID
+      tags:
+      - users
+    get:
+      description: Retrieves a user from the database with the given ID and returns
+        it to the client.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Retrieves a user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates a user with the given ID using the provided information
+      parameters:
+      - description: ID of the user to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Updates a user by ID
+      tags:
+      - users
 securityDefinitions:
   ApiKeyAuth:
     in: header

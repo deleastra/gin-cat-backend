@@ -1,14 +1,13 @@
 package main
 
 import (
+	"cat-backend/docs"
 	"cat-backend/models"
 	"cat-backend/routers"
 	"log"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	docs "cat-backend/docs"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -37,13 +36,15 @@ func main() {
 		log.Fatal(err)
 	}
 	// defer db.Close()
-	db.AutoMigrate(&models.Cats{}, &models.Users{})
+	db.AutoMigrate(&models.Cats{}, &models.User{})
 
 	// Set up the router.
 	r := gin.Default()
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/"
 	// Set up the routes for the cat controller.
 	routers.SetCatRoutes(db, r)
+	routers.SetLoginRoutes(db, r)
+	routers.SetUserRoutes(db, r)
 
 	// Set up Swagger documentation.
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

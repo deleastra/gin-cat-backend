@@ -19,3 +19,19 @@ func SetCatRoutes(db *gorm.DB, r *gin.Engine) *gin.Engine {
 
 	return r
 }
+
+func SetLoginRoutes(db *gorm.DB, r *gin.Engine) *gin.Engine {
+	loginCtrl := controllers.NewLoginController(db)
+	r.POST("/login", loginCtrl.Login)
+	r.POST("/logout", loginCtrl.Logout)
+	return r
+}
+
+func SetUserRoutes(db *gorm.DB, r *gin.Engine) *gin.Engine {
+	userCtrl := controllers.NewUserController(db)
+	r.POST("/users", userCtrl.CreateUser)
+	r.GET("/users", userCtrl.GetUser)
+	r.PUT("/users", userCtrl.UpdateUser)
+	r.DELETE("/users", userCtrl.DeleteUser)
+	return r
+}

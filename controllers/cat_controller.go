@@ -31,7 +31,7 @@ func NewCatsController(db *gorm.DB) *CatsController {
 // @Tags cats
 // @Produce json
 // @Success 200 {array} models.Cats
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 500 {object} models.Response
 // @Router /cats [get]
 func (ctrl CatsController) GetCats(c *gin.Context) {
 	var cats []models.Cats
@@ -48,7 +48,7 @@ func (ctrl CatsController) GetCats(c *gin.Context) {
 // @Produce  json
 // @Param id path int true "ID of the cat"
 // @Success 200 {object} models.Cats
-// @Failure 404 {object} models.ErrorResponse
+// @Failure 404 {object} models.Response
 // @Router /cats/{id} [get]
 func (ctrl CatsController) GetCatByID(c *gin.Context) {
 	var cat models.Cats
@@ -67,7 +67,7 @@ func (ctrl CatsController) GetCatByID(c *gin.Context) {
 // @Param name formData string true "Name of the cat"
 // @Param image formData file true "Image of the cat"
 // @Success 200 {object} models.Cats
-// @Failure 400 {object} models.ErrorResponse
+// @Failure 400 {object} models.Response
 // @Router /cats [post]
 func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Parse the request and bind the cat struct.
@@ -77,7 +77,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Read the image file from the request.
 	file, err := ctx.FormFile("image")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -87,7 +87,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Open the image file.
 	src, err := file.Open()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -98,7 +98,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	// Decode the image into memory.
 	srcImg, err := imaging.Decode(src)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -116,7 +116,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 	randomBytes := make([]byte, 32)
 	_, err = rand.Read(randomBytes)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -133,7 +133,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 
 	// Upload the image file to the server.
 	if imaging.Save(dst, "images/"+cat.Image); err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -142,7 +142,7 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 
 	// Save the cat to the database.
 	if err := c.DB.Create(&cat).Error; err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -160,13 +160,13 @@ func (c *CatsController) CreateCat(ctx *gin.Context) {
 // @Param id path string true "ID of the cat"
 // @Param cat body models.Cats true "Updated cat information"
 // @Success 200 {object} models.Cats
-// @Failure 400 {object} models.ErrorResponse
+// @Failure 400 {object} models.Response
 // @Router /cats/{id} [put]
 func (c *CatsController) UpdateCat(ctx *gin.Context) {
 	// Parse the request and bind the cat struct.
 	var cat models.Cats
 	if err := ctx.Bind(&cat); err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		})
@@ -175,7 +175,7 @@ func (c *CatsController) UpdateCat(ctx *gin.Context) {
 
 	// Update the cat in the database.
 	if err := c.DB.Model(&cat).Where("id = ?", ctx.Param("id")).Updates(&cat).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusInternalServerError,
 		})
@@ -191,20 +191,20 @@ func (c *CatsController) UpdateCat(ctx *gin.Context) {
 // @Produce  json
 // @Param id path string true "ID of the cat"
 // @Success 204
-// @Failure 404 {object} models.ErrorResponse
+// @Failure 404 {object} models.Response
 // @Router /cats/{id} [delete]
 func (c *CatsController) DeleteCat(ctx *gin.Context) {
 	var cat models.Cats
 	// Delete the cat from the database.
 	if err := c.DB.Where("id = ?", ctx.Param("id")).Delete(&models.Cats{}).Error; err != nil {
-		ctx.JSON(http.StatusNotFound, models.ErrorResponse{
+		ctx.JSON(http.StatusNotFound, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusNotFound,
 		})
 		return
 	}
 	if err := c.DB.Delete(&cat).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: err.Error(),
 			Code:    http.StatusInternalServerError,
 		})
