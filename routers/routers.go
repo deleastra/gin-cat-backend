@@ -17,6 +17,8 @@ func SetCatRoutes(db *gorm.DB, r *gin.Engine) *gin.Engine {
 	r.PUT("/cats/:id", catCtrl.UpdateCat)
 	r.DELETE("/cats/:id", catCtrl.DeleteCat)
 
+	// Images
+	r.GET("/images/:id", catCtrl.ShowImage)
 	return r
 }
 

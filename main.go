@@ -40,6 +40,7 @@ func main() {
 
 	// Set up the router.
 	r := gin.Default()
+	r.TrustedPlatform = gin.PlatformGoogleAppEngine
 	docs.SwaggerInfo.BasePath = "/"
 	// Set up the routes for the cat controller.
 	routers.SetCatRoutes(db, r)

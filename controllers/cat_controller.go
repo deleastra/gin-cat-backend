@@ -5,6 +5,8 @@ import (
 	"crypto/sha512"
 	"image"
 	"image/color"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -212,3 +214,48 @@ func (c *CatsController) DeleteCat(ctx *gin.Context) {
 	}
 	ctx.Status(http.StatusNoContent)
 }
+
+// @Summary Shows an image
+// @Description Shows an image by ID.
+// @Tags images
+// @Produce image/jpeg
+// @Param id path int true "ID of the image"
+// @Success 200 {file} image/jpeg
+// @Failure 404 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /images/{id} [get]
+func (ctrl CatsController) ShowImage(c *gin.Context) {
+	// Parse the cat ID from the request.
+	catID := c.Param("id")
+
+	// Look up the cat in the database using the ID.
+	var cat models.Cats
+	if err := ctrl.DB.Where("id = ?", catID).First(&cat).Error; err != nil {
+		c.JSON(http.StatusNotFound, models.Response{
+			Message: err.Error(),
+			Code:    http.StatusNotFound,
+		})
+		return
+	}
+
+	log.Println(cat.Image)
+	// Set the content type to the appropriate image type.
+	c.Header("Content-Type", "image/jpeg")
+
+	// Write the image data to the response body.
+	 // Read the file into a byte slice
+	 file, err := ioutil.ReadFile("images/" + cat.Image)
+	 if err != nil {
+		log.Fatalln(err)
+		 c.JSON(http.StatusInternalServerError, models.Response{
+			 Message: err.Error(),
+			 Code:    http.StatusInternalServerError,
+		 })
+		 return
+	 }
+ 
+	 // Write the byte slice to the response body
+	 c.Writer.Write(file)
+}
+
+

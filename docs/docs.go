@@ -201,6 +201,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/images/{id}": {
+            "get": {
+                "description": "Shows an image by ID.",
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "images"
+                ],
+                "summary": "Shows an image",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the image",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Logs a user in and returns a JWT token",
